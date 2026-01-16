@@ -10,6 +10,20 @@ services:
         value: prod
       - key: LOG_LEVEL
         value: INFO
+      - key: EMBEDDING_PROVIDER
+        value: azure
+      - key: EMBEDDING_WARMUP
+        value: "false"
+      - key: AZURE_OPENAI_ENDPOINT
+        sync: false
+      - key: AZURE_OPENAI_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+        sync: false
+      - key: AZURE_OPENAI_EMBEDDING_DIMENSIONS
+        value: "384"
+      - key: AZURE_OPENAI_API_VERSION
+        value: "2024-02-15-preview"
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_KEY

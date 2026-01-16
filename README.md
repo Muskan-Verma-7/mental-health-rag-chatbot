@@ -23,6 +23,9 @@ API → Safety → Embeddings → Vector Search → Topic Boosting → LLM → R
    cp .env.example .env
    ```
 2. Fill in `SUPABASE_URL`, `SUPABASE_KEY`, `GROQ_API_KEY`.
+   - Optional: set `EMBEDDING_WARMUP=false` for low-memory hosts (loads the model on first request).
+   - Optional (Azure embeddings): set `EMBEDDING_PROVIDER=azure` and the `AZURE_OPENAI_*` vars.
+     Switching embedding providers or dimensions requires reindexing the documents.
 3. Install dependencies:
    ```bash
    pip install -r requirements.txt
@@ -81,6 +84,20 @@ docker-compose up --build
 ### Deployment (Render)
 Use `render.yaml` and set environment variables in the Render dashboard:
 `SUPABASE_URL`, `SUPABASE_KEY`, `GROQ_API_KEY`.
+
+### Reindexing Documents
+
+If you switch embedding providers (e.g., from local to Azure OpenAI) or change embedding dimensions, you need to reindex:
+
+```bash
+# 1. Clear existing index
+python scripts/clear_index.py
+
+# 2. Reindex with new embeddings
+python scripts/index_data.py
+```
+
+**Note:** The existing embeddings were generated with a different model, so retrieval quality will be poor until you reindex.
 
 ### Notes
 - The breathing PDF in `data/therapy_docs` is image-based and requires OCR to index.

@@ -4,10 +4,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from ..services.embedding_service import get_embedding_service
+from ..core.config import get_settings
 from ..core.database import get_database
 from ..utils.logger import get_logger
 
 logger = get_logger()
+settings = get_settings()
 
 
 @asynccontextmanager
@@ -16,9 +18,17 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("application_starting")
     try:
-        # Warm up embedding model
-        await get_embedding_service()
-        logger.info("embedding_service_ready")
+        # Warm up embedding model (optional for low-memory environments)
+        if settings.EMBEDDING_PROVIDER == "local":
+            if settings.EMBEDDING_WARMUP:
+                await get_embedding_service()
+                logger.info("embedding_service_ready")
+            else:
+                logger.info("embedding_warmup_skipped")
+        else:
+            # Initialize Azure client to fail fast on config issues
+            await get_embedding_service()
+            logger.info("azure_embedding_service_ready")
 
         # Initialize database
         db = get_database()

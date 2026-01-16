@@ -13,8 +13,15 @@ class Settings(BaseSettings):
     GROQ_API_KEY: SecretStr
 
     # Embedding settings
+    EMBEDDING_PROVIDER: Literal["local", "azure"] = "local"
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     EMBEDDING_DIMENSION: int = 384
+    EMBEDDING_WARMUP: bool = True
+    AZURE_OPENAI_ENDPOINT: Optional[str] = None
+    AZURE_OPENAI_API_KEY: Optional[SecretStr] = None
+    AZURE_OPENAI_EMBEDDING_DEPLOYMENT: Optional[str] = None
+    AZURE_OPENAI_EMBEDDING_DIMENSIONS: Optional[int] = None
+    AZURE_OPENAI_API_VERSION: str = "2024-02-15-preview"
 
     # Chunking settings
     CHUNK_SIZE: int = Field(default=500, ge=100, le=1000)

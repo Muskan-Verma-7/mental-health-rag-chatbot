@@ -1,7 +1,8 @@
-"""Embedding service using sentence-transformers."""
+"""Embedding service using sentence-transformers or Azure OpenAI."""
 
 import asyncio
 from typing import List
+from openai import AsyncAzureOpenAI
 from sentence_transformers import SentenceTransformer
 
 from ..core.config import get_settings
@@ -13,12 +14,14 @@ class EmbeddingService:
 
     _instance: "EmbeddingService | None" = None
     _model: SentenceTransformer | None = None
+    _azure_client: AsyncAzureOpenAI | None = None
 
     def __init__(self):
         """Initialize embedding service."""
         if EmbeddingService._instance is not None:
             raise RuntimeError("Use get_embedding_service() instead")
         self._initialized = False
+        self._provider: str | None = None
 
     async def initialize(self) -> None:
         """Load the embedding model (async)."""
@@ -27,12 +30,35 @@ class EmbeddingService:
 
         settings = get_settings()
         try:
-            # Load model in thread pool (CPU-bound)
-            loop = asyncio.get_event_loop()
-            EmbeddingService._model = await loop.run_in_executor(
-                None, SentenceTransformer, settings.EMBEDDING_MODEL
-            )
-            self._initialized = True
+            self._provider = settings.EMBEDDING_PROVIDER
+            if self._provider == "azure":
+                if (
+                    not settings.AZURE_OPENAI_ENDPOINT
+                    or not settings.AZURE_OPENAI_API_KEY
+                    or not settings.AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+                ):
+                    raise ConfigurationException(
+                        "Azure OpenAI embedding config missing. "
+                        "Set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, "
+                        "and AZURE_OPENAI_EMBEDDING_DEPLOYMENT."
+                    )
+                EmbeddingService._azure_client = AsyncAzureOpenAI(
+                    api_key=settings.AZURE_OPENAI_API_KEY.get_secret_value(),
+                    api_version=settings.AZURE_OPENAI_API_VERSION,
+                    azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+                )
+                self._initialized = True
+            elif self._provider == "local":
+                # Load model in thread pool (CPU-bound)
+                loop = asyncio.get_event_loop()
+                EmbeddingService._model = await loop.run_in_executor(
+                    None, SentenceTransformer, settings.EMBEDDING_MODEL
+                )
+                self._initialized = True
+            else:
+                raise ConfigurationException(
+                    f"Unsupported embedding provider: {settings.EMBEDDING_PROVIDER}"
+                )
         except Exception as e:
             raise ConfigurationException(f"Failed to load embedding model: {e}")
 
@@ -40,6 +66,19 @@ class EmbeddingService:
         """Generate embeddings for texts."""
         if not self._initialized:
             await self.initialize()
+
+        if self._provider == "azure":
+            if EmbeddingService._azure_client is None:
+                raise ConfigurationException("Azure OpenAI client not initialized")
+            settings = get_settings()
+            request = {
+                "model": settings.AZURE_OPENAI_EMBEDDING_DEPLOYMENT,
+                "input": texts,
+            }
+            if settings.AZURE_OPENAI_EMBEDDING_DIMENSIONS:
+                request["dimensions"] = settings.AZURE_OPENAI_EMBEDDING_DIMENSIONS
+            response = await EmbeddingService._azure_client.embeddings.create(**request)
+            return [item.embedding for item in response.data]
 
         if EmbeddingService._model is None:
             raise ConfigurationException("Embedding model not loaded")

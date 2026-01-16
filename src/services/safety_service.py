@@ -21,7 +21,7 @@ class SafetyService:
 
     # Crisis keywords patterns (case-insensitive)
     HIGH_RISK_PATTERNS = [
-        r"\b(suicide|kill myself|end my life|take my life)\b",
+        r"\b(suicid(e|al)|kill myself|end my life|take my life)\b",
         r"\b(self.?harm|self.?injury|cutting|hurting myself)\b",
         r"\b(want to die|wish I was dead|better off dead)\b",
         r"\b(overdose|poison|hang|jump off)\b",

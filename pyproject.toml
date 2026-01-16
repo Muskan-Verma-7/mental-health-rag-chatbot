@@ -1,0 +1,29 @@
+[project]
+name = "aumio-rag-demo"
+version = "1.0.0"
+description = "Production-ready RAG demo for Aumio Ally mental health app"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Aumio Candidate" }]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4.0",
+  "pytest-asyncio>=0.23.0",
+  "httpx>=0.26.0",
+  "mypy>=1.8.0",
+  "ruff>=0.2.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100

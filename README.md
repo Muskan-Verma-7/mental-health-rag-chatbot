@@ -1,104 +1,62 @@
-## Aumio RAG Demo
+## RAG Pipeline Demo
 
-Production-ready RAG mental health chatbot with FastAPI, Supabase pgvector, Groq LLM, safety filtering, and observability.
+This is a quick demo I built to showcase my ability to design and implement RAG systems. Built in a few hours to demonstrate the kind of work I can bring to Aumio.
 
-### Features
-- Retrieval-augmented generation with topic-aware ranking
-- Safety filtering with crisis resources
-- Structured logging and metrics
-- Async service layer and caching
-- Supabase pgvector storage and search
+### What This Demonstrates
 
-### Architecture
-API → Safety → Embeddings → Vector Search → Topic Boosting → LLM → Response
+**RAG Pipeline Thinking:**
+- Built a complete RAG system from scratch: embeddings → vector search → retrieval → LLM generation
+- Implemented topic-aware retrieval as an experiment (not claiming it's perfect, just showing I can think through the problem)
+- Clean architecture with proper separation of concerns
 
-### Requirements
-- Python 3.11+
-- Supabase project with pgvector enabled
-- Groq API key
+**Production Mindset:**
+- Safety-first approach with crisis detection (critical for mental health domain)
+- Structured logging, error handling, rate limiting
+- Docker-ready, deployable to Render
 
-### Setup
-1. Create a `.env` from the template:
-   ```bash
-   cp .env.example .env
-   ```
-2. Fill in `SUPABASE_URL`, `SUPABASE_KEY`, `GROQ_API_KEY`.
-   - Optional: set `EMBEDDING_WARMUP=false` for low-memory hosts (loads the model on first request).
-   - Optional (Azure embeddings): set `EMBEDDING_PROVIDER=azure` and the `AZURE_OPENAI_*` vars.
-     Switching embedding providers or dimensions requires reindexing the documents.
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Apply Supabase schema:
-   - Run the SQL in `scripts/supabase_schema.sql` in the Supabase SQL editor.
-5. Download and index documents:
-   ```bash
-   python scripts/download_docs.py
-   python scripts/index_data.py
-   ```
-6. Run the API:
-   ```bash
-   uvicorn src.main:app --reload
-   ```
+**Technical Skills:**
+- FastAPI with async/await patterns
+- Supabase pgvector for vector storage
+- Groq LLM integration
+- Service layer with dependency injection
 
-### API Endpoints
-- `POST /chat` — main chat endpoint
-- `GET /health` — health check
-- `GET /metrics` — request metrics
-
-Example request:
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message":"I am feeling stressed at work"}'
-```
-
-### Tracing (Langfuse)
-Langfuse tracing is optional. Add these keys to `.env` to enable:
-
-```
-LANGFUSE_PUBLIC_KEY=your_langfuse_public_key
-LANGFUSE_SECRET_KEY=your_langfuse_secret_key
-LANGFUSE_HOST=https://cloud.langfuse.com
-```
-
-Traces include spans for safety checks, retrieval, and LLM generation.
-
-### Testing
-```bash
-pytest
-```
-
-### Docker
-```bash
-docker build -t aumio-rag-demo .
-docker run --env-file .env -p 8000:8000 aumio-rag-demo
-```
-
-### Docker Compose (Dev)
-```bash
-docker-compose up --build
-```
-
-### Deployment (Render)
-Use `render.yaml` and set environment variables in the Render dashboard:
-`SUPABASE_URL`, `SUPABASE_KEY`, `GROQ_API_KEY`.
-
-### Reindexing Documents
-
-If you switch embedding providers (e.g., from local to Azure OpenAI) or change embedding dimensions, you need to reindex:
+### Quick Setup
 
 ```bash
-# 1. Clear existing index
-python scripts/clear_index.py
+# Install dependencies
+pip install -r requirements.txt
 
-# 2. Reindex with new embeddings
+# Set up .env with:
+# SUPABASE_URL, SUPABASE_KEY, GROQ_API_KEY
+
+# Set up Supabase schema (run scripts/supabase_schema.sql)
+# Index demo documents
 python scripts/index_data.py
+
+# Run
+uvicorn src.main:app --reload
 ```
 
-**Note:** The existing embeddings were generated with a different model, so retrieval quality will be poor until you reindex.
+### Key Files
 
-### Notes
-- The breathing PDF in `data/therapy_docs` is image-based and requires OCR to index.
-- Topic-aware retrieval is documented in `TOPIC_AWARE_RETRIEVAL.md`.
+- `src/services/retrieval_service.py` - RAG retrieval logic with topic-aware boosting experiment
+- `src/services/safety_service.py` - Crisis detection and safety filtering
+- `src/api/routes.py` - Main chat endpoint
+- `src/services/llm_service.py` - LLM integration with context
+
+### Important Notes
+
+- **Demo documents only** - The PDFs in `data/therapy_docs/` are just for demonstration purposes, not real therapy documents
+- **Quick prototype** - This was built to show capability, not production quality
+- **Topic-aware retrieval** - Implemented as a proof of concept to show I can think through retrieval improvements, not claiming it's optimal
+
+### What I'd Build at Aumio
+
+Given more time and real requirements, I'd focus on:
+- Better retrieval strategies (cross-encoders, hybrid search)
+- Conversation memory and context management
+- User feedback loops to improve retrieval
+- A/B testing framework for different approaches
+- Proper evaluation metrics and monitoring
+
+This demo shows I can move fast, think through RAG problems, and write clean, maintainable code. I'm excited to apply these skills to real problems at Aumio.

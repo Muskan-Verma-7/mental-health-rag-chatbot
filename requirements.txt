@@ -15,3 +15,5 @@ python-dotenv>=1.0.0
 pytest>=7.4.0
 pytest-asyncio>=0.23.0
 langfuse>=2.40.0
+opentelemetry-instrumentation-fastapi>=0.44b0
+opentelemetry-instrumentation-httpx>=0.44b0
